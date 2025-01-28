@@ -175,7 +175,7 @@ func populateProfileRules(dsProfile *xmlquery.Node, parsedProfile *xccdf.Profile
 		}
 		ruleSelector, err := getDsElementAttrValue(rule, "selector")
 		if err != nil {
-			return parsedProfile, fmt.Errorf("error getting value of 'selector' attribute: %s", err)
+			return parsedProfile, fmt.Errorf("error getting value of 'selected' attribute: %s", err)
 		}
 
 		parsedProfile.Selections = append(parsedProfile.Selections, xccdf.SelectElement{
