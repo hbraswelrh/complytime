@@ -11,6 +11,9 @@ import (
 var ErrMissingValue = fmt.Errorf("missing value")
 
 // Need to initialize function
+func init() {
+	charmlog.Default()
+}
 
 // Wrap the function
 func WrapLog(charmlog *charmlog.Logger) hclog.Logger { return &CharmHclog{charmlog} }
@@ -19,9 +22,6 @@ func WrapLog(charmlog *charmlog.Logger) hclog.Logger { return &CharmHclog{charml
 type CharmHclog struct {
 	logger *charmlog.Logger
 }
-
-// LoggerOption is an option for a logger (from charm logger)
-//type LoggerOption = func(*Logger)
 
 // CharmHclog will implement the hclog.Logger
 
@@ -65,13 +65,12 @@ func (c *CharmHclog) Error(msg string, args ...interface{}) {
 }
 
 // Functions from go-hc-log
-
-func (c *CharmHclog) IsTrace() bool     { return false }
-func (c *CharmHclog) IsDebug() bool     { return false }
-func (c *CharmHclog) IsInfo() bool      { return false }
-func (c *CharmHclog) IsWarn() bool      { return false }
-func (c *CharmHclog) IsError() bool     { return false }
-func (c *CharmHclog) ImpliedArgs() bool { return false }
+func (c *CharmHclog) IsTrace() bool              { return false }
+func (c *CharmHclog) IsDebug() bool              { return false }
+func (c *CharmHclog) IsInfo() bool               { return false }
+func (c *CharmHclog) IsWarn() bool               { return false }
+func (c *CharmHclog) IsError() bool              { return false }
+func (c *CharmHclog) ImpliedArgs() []interface{} { return nil }
 func (c *CharmHclog) With(args ...interface{}) hclog.Logger {
 	return &CharmHclog{c.logger.With(args...)}
 }
@@ -85,12 +84,10 @@ func (c *CharmHclog) Named(name string) hclog.Logger {
 }
 
 // go-hclog logger resetnamed function to implement
-//
-//func (c *CharmHclog) ResetNamed(name string) hclog.Logger {
-//	logger, err := charmlog.NewWithOptions()
-//	if err != nil { panic(err) }
-//	return &CharmHclog{logger.WithAttrs(name)}
-//}
+func (c *CharmHclog) ResetNamed(name string) hclog.Logger {
+	c.Named(name)
+	return &CharmHclog{logger: charmlog.New()}
+}
 
 // Enables setting log level
 func (c *CharmHclog) SetLevel(level hclog.Level) {
