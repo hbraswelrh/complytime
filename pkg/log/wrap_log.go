@@ -13,7 +13,7 @@ var ErrMissingValue = fmt.Errorf("missing value")
 // Need to initialize function
 
 // Wrap the function
-func WrapLog(charmlog *charmlog.StandardLogOptions) hclog.Logger { return &CharmHclog{charmlog} }
+func WrapLog(charmlog *charmlog.Logger) hclog.Logger { return &CharmHclog{charmlog} }
 
 // CharmHclog will be a structure that accesses the attributes of charm log
 type CharmHclog struct {
@@ -24,6 +24,7 @@ type CharmHclog struct {
 //type LoggerOption = func(*Logger)
 
 // CharmHclog will implement the hclog.Logger
+
 var _ hclog.Logger = &CharmHclog{}
 
 var hclogCharmLevels = map[hclog.Level]charmlog.Level{
@@ -84,12 +85,12 @@ func (c *CharmHclog) Named(name string) hclog.Logger {
 }
 
 // go-hclog logger resetnamed function to implement
-
+//
 //func (c *CharmHclog) ResetNamed(name string) hclog.Logger {
 //	logger, err := charmlog.NewWithOptions()
 //	if err != nil { panic(err) }
-//	return &CharmHclog{logger.WithAttrs(name)}}
-//	return c.ResetNamed(name) }
+//	return &CharmHclog{logger.WithAttrs(name)}
+//}
 
 // Enables setting log level
 func (c *CharmHclog) SetLevel(level hclog.Level) {
