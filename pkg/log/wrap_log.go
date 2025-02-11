@@ -11,6 +11,9 @@ import (
 var ErrMissingValue = fmt.Errorf("missing value")
 
 // Need to initialize function
+// Possibly use the LoggerOptions here to configure new logger
+// Must indicate the outputs, etc
+// HClog Logger Options will interact with the formatter
 func init() {
 	charmlog.Default()
 }
@@ -117,6 +120,8 @@ func (c *CharmHclog) GetLevel() hclog.Level {
 
 // Look at stdlog.go for forcing level
 // The standard logger needs to be implemented to return a standard logger of the charm type
+// TODO: Need to point the opts to the hclog LoggerOptions
+// The standard logger options configure the new logger
 func (c *CharmHclog) StandardLogger(opts *hclog.StandardLoggerOptions) *charmlog.Logger {
 	return charmlog.NewWithOptions(c.logger.StandardLog())
 }
