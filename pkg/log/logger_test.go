@@ -1,19 +1,18 @@
-package complytime
+package log
 
 import (
 	"bytes"
 	charmlogger "github.com/charmbracelet/log"
-	"github.com/complytime/complytime/pkg/log"
 	"github.com/hashicorp/go-hclog"
 	"github.com/stretchr/testify/assert"
 	//"strings"
 	"testing"
 )
 
-func NewTestLogger(t *testing.T) log.CharmHclog {
-	log.WrapLog(charmlogger.SetLevel())
+func NewTestLogger(t *testing.T) CharmHclog {
+	WrapLog(charmlogger.SetLevel())
 }
-func TestLogger(t *testing.T) log.CharmHclog {
+func TestLogger(t *testing.T) CharmHclog {
 	logger := NewTestLogger(t)
 	logger.Debug("debug")
 	logger.Warn("warn")
