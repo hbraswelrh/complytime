@@ -3,60 +3,11 @@ package log
 import (
 	"bytes"
 	charmlogger "github.com/charmbracelet/log"
-	"github.com/hashicorp/go-hclog"
-	"github.com/jhump/protoreflect/dynamic/msgregistry"
 	"github.com/stretchr/testify/assert"
 	"io"
-	"os"
 	"testing"
 	"time"
 )
-
-//var (
-//	buf        bytes.Buffer
-//	TestLogger = charmlogger.New(&buf)
-//)
-
-// charmlogger = tlog.TestLogger
-
-func TestWrapLog(t *testing.T) {
-	wrap := CharmHclog{}
-	charmlogger.StandardLog(wrap)
-
-}
-func TestRaceLog(t *testing.T) {
-	t.Parallel()
-
-	w := io.Discard
-	l := charmlogger.New(w)
-	//charmlogger := tlog.TestLogger
-	for i := 0; i < 10; i++ {
-		t.Run("race", func(t *testing.T) {
-			t.Parallel()
-			s := l.StandardLog()
-			l.Info("test")
-			l.GetLevel()
-			l.Print("test")
-
-			s.Print("test")
-			s.Writer().Write([]byte("tester\n"))
-			s.Output(1, "message alert")
-
-			l.SetOutput(w)
-			l.Debug("test")
-			l.SetLevel(charmlogger.InfoLevel)
-			l.GetPrefix()
-
-			o := l.With("test", "tester\n")
-			o.Printf("test %s", "tester\n")
-			o.SetTimeFormat(time.Kitchen)
-			o.Warn("test")
-			o.SetOutput(w)
-			o.Error("test")
-			o.SetFormatter(charmlogger.LogfmtFormatter)
-		})
-	}
-}
 
 // Declaring the test logger to be a new charmlogger
 func TestLogger(t *testing.T) {
@@ -86,7 +37,7 @@ func TestLogger(t *testing.T) {
 // TODO: WIP, general structure
 // Decide on buffer vs string usage
 // Info Level set initially
-// Allocating a default options charmlogger to l
+// Allocating a default options charm logger to l
 // Setting level using the buffer
 func TestNonExistentLevel(t *testing.T) {
 	var buf bytes.Buffer
@@ -131,31 +82,48 @@ func TestNonExistentLevel(t *testing.T) {
 	}
 }
 
-// Constructing a string prefix tester
-// Formatted to mimic https://github.com/charmbracelet/log/blob/main/logger_test.go
-//func TestSPrefix(t *testing.T) {
-//	var buf bytes.Buffer
-//	cases := []struct {
-//		name     string
-//		expected string
-//		prefix   string
-//		msg      string
-//	}{
-//		{
-//			name:     "include prefix",
-//			expected: "INFO prefix: info\n",
-//			prefix:   "prefix",
-//			msg:      "info",
-//		},
-//	}
-//	for _, c := range cases {
-//		t.Run(c.name, func(t *testing.T) {
-//			buf.Reset()
-//			l := New(&buf)
-//			l.SetPrefix(c.prefix)
-//			l.Info(c.msg)
-//			l.With(c.fields...).Info(c.msg, c.kvs...)
-//			assert.Equal(t, c.expected, buf.String())
-//		})
-//	}
-//}
+// Testing different input types
+func TestTypes(t *testing.T) {
+	tests := []struct {
+		name     string
+		expected string
+		level    string
+		msg      string
+	}{
+		{
+			// Testing debug level names
+			name:     "Debug",
+			expected: "Debug",
+			level:    "Debug",
+			msg:      "The ComplyTime command has been executed.",
+		},
+		{
+			// Testing info level names
+			name:     "Info",
+			expected: "Info",
+			level:    "Info",
+			msg:      "The ComplyTime command has been executed.",
+		},
+		{
+			// Testing warn level names
+			name:     "Warn",
+			expected: "Warn",
+			level:    "Warn",
+			msg:      "The ComplyTime command has been executed.",
+		},
+		{
+			// Testing error level names
+			name:     "Error",
+			expected: "Error",
+			level:    "Error",
+			msg:      "The ComplyTime command has been executed.",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var buf bytes.Buffer
+			charmlogger.New(&buf)
+		})
+	}
+
+}

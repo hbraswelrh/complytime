@@ -76,12 +76,18 @@ func (c *CharmHclog) Error(msg string, args ...interface{}) {
 }
 
 // Functions from go-hc-log
-func (c *CharmHclog) IsTrace() bool              { return false }
-func (c *CharmHclog) IsDebug() bool              { return false }
-func (c *CharmHclog) IsInfo() bool               { return false }
-func (c *CharmHclog) IsWarn() bool               { return false }
-func (c *CharmHclog) IsError() bool              { return false }
+func (c *CharmHclog) IsTrace() bool { return false }
+
+func (c *CharmHclog) IsDebug() bool { return false }
+
+func (c *CharmHclog) IsInfo() bool { return false }
+
+func (c *CharmHclog) IsWarn() bool { return false }
+
+func (c *CharmHclog) IsError() bool { return false }
+
 func (c *CharmHclog) ImpliedArgs() []interface{} { return nil }
+
 func (c *CharmHclog) With(args ...interface{}) hclog.Logger {
 	return &CharmHclog{c.logger.With(args...)}
 }
