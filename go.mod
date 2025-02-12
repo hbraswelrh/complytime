@@ -6,9 +6,11 @@ require (
 	github.com/ComplianceAsCode/compliance-operator v1.5.0
 	github.com/adrg/xdg v0.5.3
 	github.com/antchfx/xmlquery v1.4.3
+	github.com/charmbracelet/log v0.4.0
 	github.com/defenseunicorns/go-oscal v0.6.2
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-plugin v1.6.2
+	github.com/jhump/protoreflect v1.15.1
 	github.com/oscal-compass/compliance-to-policy-go/v2 v2.0.0
 	github.com/oscal-compass/oscal-sdk-go v0.0.0-20241209195345-3e8abe96267d
 	github.com/spf13/cobra v1.8.1
@@ -22,9 +24,9 @@ require (
 	github.com/antchfx/xpath v1.3.3 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/bufbuild/protocompile v0.4.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/lipgloss v0.10.0 // indirect
-	github.com/charmbracelet/log v0.4.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/emicklei/go-restful/v3 v3.12.1 // indirect
 	github.com/evanphx/json-patch/v5 v5.9.0 // indirect

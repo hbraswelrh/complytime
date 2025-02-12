@@ -5,6 +5,7 @@ import (
 	charmlog "github.com/charmbracelet/log"
 	"github.com/hashicorp/go-hclog"
 	"io"
+	"log"
 	"os"
 )
 
@@ -15,7 +16,8 @@ var ErrMissingValue = fmt.Errorf("missing value")
 // Must indicate the outputs, etc
 // HClog Logger Options will interact with the formatter
 func init() {
-	charmlog.Default()
+	// charmlog.Default()
+	charmlog.New(os.Stderr)
 }
 
 // Wrap the functionality of charmlogger in hclogger
@@ -27,7 +29,6 @@ type CharmHclog struct {
 }
 
 // CharmHclog will implement the hclog.Logger
-
 var _ hclog.Logger = &CharmHclog{}
 
 // Declaring hclogCharmLevels as a map with key values for adapting hclog to charmlog
@@ -86,23 +87,24 @@ func (c *CharmHclog) With(args ...interface{}) hclog.Logger {
 }
 
 // Need to configure a Name function
-func (c *CharmHclog) Name() string { return c.Name() }
+// Include a function that will wrap HClog
+func (c *CharmHclog) Name() string { return c.logger.Name() }
 
 //func (c *CharmHclog) Name() string { return hclog.Logger(c.logger).Name() }
 
 // Take input and then prepend name string
 func (c *CharmHclog) Named(name string) hclog.Logger {
-	return &CharmHclog{c.logger.With()}
+	return &CharmHclog{c.logger.SetPrefix(name)}
 }
 
 // go-hclog logger resetnamed function to implement
 func (c *CharmHclog) ResetNamed(name string) hclog.Logger {
-	c.Named(name)
-	logger, err := charmlog.SetOutput()
+	//c.Named(name)
+	logger, err := charmlog.SetCallerFormatter()
 	if err != nil {
 		panic(err)
 	}
-	return &CharmHclog{logger: charmlog.New()}
+	return &CharmHclog{charmlog.Named(name)}
 }
 
 // Enables setting log level
@@ -112,20 +114,20 @@ func (c *CharmHclog) SetLevel(level hclog.Level) {
 
 // GetLevel using charm logger GetLevel
 func (c *CharmHclog) GetLevel() hclog.Level {
-	return charmHclogLevels[hclog.Level(charmlog.GetLevel())]
+	return charmHclogLevels[charmlog.GetLevel()]
 }
 
-// GetLevel using charm logger Level method to extract
-//func (c *CharmHclog) GetLevel() hclog.Level { return charmHclogLevels[hclog.Level(charmlog.Level(level))]}
-
-// Look at stdlog.go for forcing level
-// The standard logger needs to be implemented to return a standard logger of the charm type
+// The standard logger methods wrap the hclog standard logger function
+// The return statement will use the StandardLog method to return the charmlog std logger with options
+// c is referencing the CharmHcLog -> which has standardlogger method referencing standardloggeroptions
+// type standard logger
+// returning the standardlog
 // TODO: Need to point the opts to the hclog LoggerOptions
 // The standard logger options configure the new logger
-func (c *CharmHclog) StandardLogger(opts *hclog.StandardLoggerOptions) *charmlog.Logger {
-	return charmlog.NewWithOptions(c.logger.StandardLog())
+func (c *CharmHclog) StandardLogger(opts *hclog.StandardLoggerOptions) *log.Logger {
+	return charmlog.StandardLog(c.logger.StandardLog())
 }
 
 func (c *CharmHclog) StandardWriter(opts *hclog.StandardLoggerOptions) io.Writer { return os.Stdout }
 
-func Logger() *charmlog.Logger { return charmlog.StandardLog() }
+func Logger() *charmlog.Logger { return charmlog.NewWithOptions() }
