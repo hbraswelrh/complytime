@@ -2,6 +2,7 @@ package log
 
 import (
 	"bytes"
+	"fmt"
 	charmlogger "github.com/charmbracelet/log"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -123,6 +124,7 @@ func TestTypes(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var buf bytes.Buffer
 			charmlogger.New(&buf)
+			fmt.Sprintf("The Complytime command at level %s was executed successfully.", tt.level)
 		})
 	}
 
