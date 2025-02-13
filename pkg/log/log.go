@@ -1,146 +1,127 @@
-// SPDX-License-Identifier: Apache-2.0
-
 package log
 
 import (
 	"fmt"
+	charmlog "github.com/charmbracelet/log"
+	"github.com/hashicorp/go-hclog"
 	"io"
 	"log"
 	"os"
-
-	"github.com/hashicorp/go-hclog"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
-// Enable changing the log level
-var atom = zap.NewAtomicLevel()
+var ErrMissingValue = fmt.Errorf("missing value")
 
-// Pre-configure the logger
+// Initializing a New logger with default options writing to Standard error
 func init() {
-	zap.ReplaceGlobals(zap.Must(zap.NewProduction()))
+	charmlog.New(os.Stderr)
 }
 
-func Wrap(zap *zap.SugaredLogger) hclog.Logger {
-	return &ZapHclog{zap}
+// Wrap the functionality of charmlogger in hclogger
+func WrapLog(charmlog *charmlog.Logger) hclog.Logger { return &CharmHclog{charmlog} }
+
+// CharmHclog will be a structure that accesses the attributes of charm logger
+type CharmHclog struct {
+	logger *charmlog.Logger
 }
 
-// Adapt zap to hclog
-type ZapHclog struct {
-	logger *zap.SugaredLogger
+// CharmHclog will implement the hclog.Logger
+var _ hclog.Logger = &CharmHclog{}
+
+// Declaring hclogCharmLevels as a map with key values for adapting hclog to charmlog
+// key: value -> hclog.LEVEL: charmlog.LEVEL
+var hclogCharmLevels = map[hclog.Level]charmlog.Level{
+	hclog.NoLevel: charmlog.InfoLevel,  // There is no "NoLevel" equivalent in charm, use info
+	hclog.Trace:   charmlog.DebugLevel, // There is no "Trace" equivalent in charm, use debug
+	hclog.Debug:   charmlog.DebugLevel,
+	hclog.Info:    charmlog.InfoLevel,
+	hclog.Warn:    charmlog.WarnLevel,
+	hclog.Error:   charmlog.ErrorLevel,
+	hclog.Off:     charmlog.FatalLevel, // There is no "Off" level equivalent in charm
 }
 
-// Ensure ZapHclog implements hclog.Logger
-var _ hclog.Logger = &ZapHclog{}
-
-var hclogZapLevels = map[hclog.Level]zapcore.Level{
-	// NoLevel is a special level used to indicate that no level has been
-	// set and allow for a default to be used.
-	hclog.NoLevel: zapcore.InfoLevel,  // No "NoLevel" equivalent, hardcode Info as default
-	hclog.Trace:   zapcore.DebugLevel, // No "Trace" equivalent
-	hclog.Debug:   zapcore.DebugLevel,
-	hclog.Info:    zapcore.InfoLevel,
-	hclog.Warn:    zapcore.WarnLevel,
-	hclog.Error:   zapcore.ErrorLevel,
-	hclog.Off:     zapcore.FatalLevel, // No "Off" equivalent
+// Declaring charmHclogLevels to map the key: value pairs as charmlogger and hclog
+var charmHclogLevels = map[charmlog.Level]hclog.Level{
+	charmlog.DebugLevel: hclog.Debug,
+	charmlog.InfoLevel:  hclog.Info,
+	charmlog.WarnLevel:  hclog.Warn,
+	charmlog.ErrorLevel: hclog.Error,
+	charmlog.FatalLevel: hclog.Error, // There is no "fatal" equivalent in hclog
 }
 
-var zapHclogLevels = map[zapcore.Level]hclog.Level{
-	zapcore.DebugLevel:   hclog.Debug,
-	zapcore.InfoLevel:    hclog.Info,
-	zapcore.WarnLevel:    hclog.Warn,
-	zapcore.ErrorLevel:   hclog.Error,
-	zapcore.PanicLevel:   hclog.Error, // No "Panic" equivalent
-	zapcore.FatalLevel:   hclog.Error, // No "Fatal" equivalent
-	zapcore.InvalidLevel: hclog.Error, // No "Invalid" equivalent
+// c will have information from the CharmHclog structure and will access the charm logger
+// Log will use the level of hclog and do the identical logger operation using the charmlogger
+// The map defines the level matches
+
+func (c *CharmHclog) Log(level hclog.Level, msg string, args ...interface{}) {
+	c.logger.Log(hclogCharmLevels[level], fmt.Sprintf(msg, args...))
+}
+func (c *CharmHclog) Trace(msg string, args ...interface{}) {
+	c.logger.Debug(msg, args...)
+}
+func (c *CharmHclog) Debug(msg string, args ...interface{}) {
+	c.logger.Debug(msg, args...)
+}
+func (c *CharmHclog) Info(msg string, args ...interface{}) {
+	c.logger.Info(msg, args...)
+}
+func (c *CharmHclog) Warn(msg string, args ...interface{}) {
+	c.logger.Warn(msg, args...)
+}
+func (c *CharmHclog) Error(msg string, args ...interface{}) {
+	c.logger.Error(msg, args...)
 }
 
-func (z *ZapHclog) Log(level hclog.Level, msg string, args ...interface{}) {
-	z.logger.Logw(hclogZapLevels[level], fmt.Sprintf(msg, args...))
+// Functions from go-hc-log
+func (c *CharmHclog) IsTrace() bool { return false }
+
+func (c *CharmHclog) IsDebug() bool { return false }
+
+func (c *CharmHclog) IsInfo() bool { return false }
+
+func (c *CharmHclog) IsWarn() bool { return false }
+
+func (c *CharmHclog) IsError() bool { return false }
+
+func (c *CharmHclog) ImpliedArgs() []interface{} { return nil }
+
+func (c *CharmHclog) With(args ...interface{}) hclog.Logger {
+	return &CharmHclog{c.logger.With(args...)}
 }
 
-func (z *ZapHclog) Trace(msg string, args ...interface{}) {
-	z.logger.Debugw(msg, args...)
+// The GetPrefix() method will return the default prefix.
+func (c *CharmHclog) Name() string { return c.logger.GetPrefix() }
+
+// The SetPrefix() method will return the prefix set at the indicated name flag.
+func (c *CharmHclog) Named(name string) hclog.Logger {
+	return &CharmHclog{c.logger.WithPrefix(name)}
 }
 
-func (z *ZapHclog) Debug(msg string, args ...interface{}) {
-	z.logger.Debugw(msg, args...)
-}
-
-func (z *ZapHclog) Info(msg string, args ...interface{}) {
-	z.logger.Infow(msg, args...)
-}
-
-func (z *ZapHclog) Warn(msg string, args ...interface{}) {
-	z.logger.Warnw(msg, args...)
-}
-
-func (z *ZapHclog) Error(msg string, args ...interface{}) {
-	z.logger.Errorw(msg, args...)
-}
-
-func (z *ZapHclog) IsTrace() bool {
-	return false
-}
-
-func (z *ZapHclog) IsDebug() bool {
-	return false
-}
-
-func (z *ZapHclog) IsInfo() bool {
-	return false
-}
-
-func (z *ZapHclog) IsWarn() bool {
-	return false
-}
-
-func (z *ZapHclog) IsError() bool {
-	return false
-}
-
-func (z *ZapHclog) ImpliedArgs() []interface{} {
-	//do nothing
-	return nil
-}
-
-func (z *ZapHclog) With(args ...interface{}) hclog.Logger {
-	return &ZapHclog{z.logger.With(args...)}
-}
-
-func (z *ZapHclog) Name() string {
-	return z.logger.Desugar().Name()
-}
-
-func (z *ZapHclog) Named(name string) hclog.Logger {
-	return &ZapHclog{z.logger.Named(name)}
-}
-
-func (z *ZapHclog) ResetNamed(name string) hclog.Logger {
-	logger, err := zap.NewProduction()
+// go-hclog logger resetnamed function to implement
+func (c *CharmHclog) ResetNamed(name string) hclog.Logger {
+	logger, err := charmlog.SetPrefix(name)
 	if err != nil {
-		// TODO decide what to do
 		panic(err)
 	}
-	return &ZapHclog{logger.Sugar().Named(name)}
+	return &CharmHclog{charmlog.SetPrefix(logger)}
 }
 
-func (z *ZapHclog) SetLevel(level hclog.Level) {
-	atom.SetLevel(hclogZapLevels[level])
+// Enables setting log level
+func (c *CharmHclog) SetLevel(level hclog.Level) {
+	charmlog.SetLevel(hclogCharmLevels[level])
 }
 
-func (z *ZapHclog) GetLevel() hclog.Level {
-	return zapHclogLevels[atom.Level()]
+// GetLevel using charm logger GetLevel
+func (c *CharmHclog) GetLevel() hclog.Level {
+	return charmHclogLevels[charmlog.GetLevel()]
 }
 
-func (z *ZapHclog) StandardLogger(opts *hclog.StandardLoggerOptions) *log.Logger {
-	return zap.NewStdLog(z.logger.Desugar())
+// The StandardLog() method wraps the go-hclog StandardLogger()
+// Returning the charmlog standard logger with options from the standard logger.
+// TODO: Need to point the opts to the hclog LoggerOptions
+func (c *CharmHclog) StandardLogger(opts *hclog.StandardLoggerOptions) *log.Logger {
+	return charmlog.StandardLog(c.logger.StandardLog())
 }
 
-func (z *ZapHclog) StandardWriter(opts *hclog.StandardLoggerOptions) io.Writer {
-	return os.Stdout
-}
+func (c *CharmHclog) StandardWriter(opts *hclog.StandardLoggerOptions) io.Writer { return os.Stdout }
 
-func Logger() *zap.SugaredLogger {
-	return zap.S()
-}
+func Logger() *charmlog.Logger { return charmlog.NewWithOptions() }
