@@ -5,9 +5,7 @@ import (
 	"fmt"
 	charmlogger "github.com/charmbracelet/log"
 	"github.com/stretchr/testify/assert"
-	"io"
 	"testing"
-	"time"
 )
 
 // Declaring the test logger to be a new charmlogger
@@ -77,7 +75,7 @@ func TestNonExistentLevel(t *testing.T) {
 	}
 	for _, c := range cases {
 		buf.Reset()
-
+		charmlogger.Print("The named prefix: %s.", c.name)
 		// Test switch statements for nonexistent level entry
 		// Terminal output format, not logger formatting exactly
 	}
@@ -124,7 +122,7 @@ func TestTypes(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var buf bytes.Buffer
 			charmlogger.New(&buf)
-			fmt.Sprintf("The Complytime command at level %s was executed successfully.", tt.level)
+			charmlogger.Info(fmt.Sprintf("The Complytime command at level %s was executed successfully.", tt.level))
 		})
 	}
 
