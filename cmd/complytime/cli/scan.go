@@ -54,7 +54,7 @@ func runScan(cmd *cobra.Command, opts *scanOptions) error {
 	if err != nil {
 		return err
 	}
-	// Create the application directory if it does not exist
+	// Create the application directory if it does not already exist
 	appDir, err := complytime.NewApplicationDirectory(true)
 	if err != nil {
 		return err
