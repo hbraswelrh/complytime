@@ -76,12 +76,21 @@ func (a AssessmentScope) applyControlScope(assessmentPlan *oscalTypes.Assessment
 			}
 		}
 	}
-
+	// TODO: Reviewed Controls is construct identifying controls to be assessed
+	// Handling included controls first and then removing excluded controls
 	if assessmentPlan.ReviewedControls.ControlSelections != nil {
 		for controlSelectionI := range assessmentPlan.ReviewedControls.ControlSelections {
 			controlSelection := &assessmentPlan.ReviewedControls.ControlSelections[controlSelectionI]
 			filterControlSelection(controlSelection, includedControls)
 		}
+	} else {
+		if assessmentPlan.ReviewedControls.ControlSelections == nil {
+			for controlExcludeI := range assessmentPlan.ReviewedControls.ControlSelections {
+				controlExclusion := &assessmentPlan.ReviewedControls.ControlSelections[controlExcludeI]
+				filterControlSelection(controlExclusion, includedControls)
+			}
+		}
+
 	}
 }
 
@@ -95,13 +104,43 @@ func filterControlSelection(controlSelection *oscalTypes.AssessedControls, inclu
 	controlSelection.IncludeAll = nil
 
 	originalIncludedControls := map[string]bool{}
+	// TODO: added for testing
+	//originalRemovedControls := map[string]bool{}
 	if controlSelection.IncludeControls != nil {
 		for _, controlId := range *controlSelection.IncludeControls {
 			originalIncludedControls[controlId.ControlId] = true
 		}
 	}
+	if controlSelection.IncludeControls == nil {
+		for _, controlId := range *controlSelection.IncludeControls {
+			delete(originalIncludedControls, controlId.ControlId)
+		}
+	}
+	//else { // the controlIds would be filtered and removed from the slice
+	//	controlSelection.IncludeControls = nil
+	//	for _, controlId := range *controlSelection.IncludeControls {
+	//		originalRemovedControls[controlId.ControlId] = true
+	//		//delete(originalRemovedControls, controlId.ControlId)
+	//	}
+	//}
 	var newIncludedControls []oscalTypes.AssessedControlsSelectControlById
+	// TODO: wrap
+	//var newRemovedControls []oscalTypes.AssessedControlsSelectControlById
+
 	for controlId := range includedControls {
+		//if includedAll || originalRemovedControls[controlId] || originalIncludedControls[controlId] {
+		//	newIncludedControls = append(newIncludedControls, oscalTypes.AssessedControlsSelectControlById{
+		//		ControlId: controlId,
+		//	})
+		//	newRemovedControls = append(newRemovedControls, oscalTypes.AssessedControlsSelectControlById{
+		//		ControlId: controlId,
+		//	})
+		//	for controlId := range newIncludedControls {
+		//		if newIncludedControls[controlId] == newRemovedControls[controlId] {
+		//			delete(newIncludedControls, controlId)
+		//		}
+		//	}
+		//}
 		if includedAll || originalIncludedControls[controlId] {
 			newIncludedControls = append(newIncludedControls, oscalTypes.AssessedControlsSelectControlById{
 				ControlId: controlId,
